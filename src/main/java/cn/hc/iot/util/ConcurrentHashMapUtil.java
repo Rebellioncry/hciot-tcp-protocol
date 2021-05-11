@@ -47,4 +47,9 @@ public class ConcurrentHashMapUtil {
     public static void removeCache(String key) {
         cacheMap.remove(key);
     }
+
+
+    public static ConcurrentHashMap<String, NetSocket> all(){
+        return cacheMap;
+    }
 }
