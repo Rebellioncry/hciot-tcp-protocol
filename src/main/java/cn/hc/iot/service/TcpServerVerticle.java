@@ -3,6 +3,8 @@ package cn.hc.iot.service;
 
 import cn.hc.iot.util.ConcurrentHashMapUtil;
 import cn.hc.iot.util.TlvBox;
+import cn.hutool.core.util.ByteUtil;
+import cn.hutool.core.util.HexUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
@@ -16,6 +18,8 @@ import io.vertx.ext.web.client.WebClient;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,11 +43,21 @@ public class TcpServerVerticle extends AbstractVerticle {
             RecordParser parser = RecordParser.newFixed(8);
             parser.setOutput(new Handler<Buffer>() {
                 int size = -1;
+                String type = "";
+                String[] types = new String[]{"11","30","40","60"};
+                List<String> list= Arrays.asList(types);
 
                 @Override
                 public void handle(Buffer buffer) {
                     if (-1 == size) {
+                        type = HexUtil.toHex(buffer.getInt(0));
+                        if (!list.contains(type)){
+                            return;
+                        }
                         size = buffer.getInt(4);
+                        if (size>2048){
+                            return;
+                        }
                         parser.fixedSizeMode(size);
 
                     } else {
@@ -51,14 +65,9 @@ public class TcpServerVerticle extends AbstractVerticle {
                         if (buf.length > 2048) {
                             return;
                         }
-                        TlvBox tlvBox = TlvBox.parse(buf);
-
-                        switch (buffer.getInt(0)) {
-                            case 0x11:
-                                String payload = tlvBox.getString(0x11);
-                                if (payload.getBytes().length > 2048) {
-                                    return;
-                                }
+                        switch (type) {
+                            case "11":
+                                String payload = new String(buf);
                                 String[] split = payload.split(",");
                                 String prodKey = split[0];
                                 String deviceName = split[1];
@@ -93,26 +102,17 @@ public class TcpServerVerticle extends AbstractVerticle {
                                     }
                                 });
                                 break;
-                            case 0x30:
-                                byte[] payload2 = tlvBox.getBytes(0x30);
-                                if (payload2.length > 2048) {
-                                    return;
-                                }
+                            case "30":
                                 //上报
                                 break;
-                            case 0x40:
-                                byte[] payload3 = tlvBox.getBytes(0x40);
-                                if (payload3.length > 0) {
-                                    return;
-                                }
-                                byte[] typeBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(0x50).array();
+                            case "40":
+                                byte[] typeBytes = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN).putInt(0x50).array();
                                 netSocket.write(Buffer.buffer(typeBytes));
                                 break;
-                            case 0x60:
+                            case "60":
                                 netSocket.close();
                                 break;
                         }
-
 
                         parser.fixedSizeMode(8);
                         size = -1;
@@ -177,5 +177,4 @@ public class TcpServerVerticle extends AbstractVerticle {
             }
         });
     }
-
 }

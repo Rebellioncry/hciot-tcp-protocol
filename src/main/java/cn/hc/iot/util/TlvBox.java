@@ -14,7 +14,7 @@ import java.util.Set;
  * @date 2021-05-17 15:00
  */
 public class TlvBox {
-    protected static final ByteOrder DEFAULT_BYTE_ORDER = ByteOrder.LITTLE_ENDIAN;
+    protected static final ByteOrder DEFAULT_BYTE_ORDER = ByteOrder.BIG_ENDIAN;
     protected final Map<Integer, byte[]> valueMap;
 
     public TlvBox() {

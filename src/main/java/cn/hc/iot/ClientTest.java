@@ -1,5 +1,6 @@
 package cn.hc.iot;
 
+import cn.hc.iot.util.TlvBox;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -21,8 +22,12 @@ public class ClientTest extends AbstractVerticle {
                     if (res.succeeded()) {
                         System.out.println("连接成功!");
                         NetSocket socket = res.result();
+                        TlvBox tlvBox2 = TlvBox.create();
+                        tlvBox2.put(0x11,"abcd,abcd");
+                        byte[] serialize = tlvBox2.serialize();
+                        System.out.println(new String(serialize));
                         //向服务器写入数据
-                        socket.write(Buffer.buffer("1111"), ar -> {
+                        socket.write(Buffer.buffer(serialize), ar -> {
                             if (ar.succeeded()) {
                                 System.out.println("数据发送成功!");
                             } else {
