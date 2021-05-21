@@ -1,4 +1,12 @@
 {
   "tcp.port": 9985,
-  "iotos.url": "http://iotos.gkiiot.com"
+  "iotos.url": "http://iotos.gkiiot.com",
+  "login.path": "/openapi/device/dev/login",
+  "logout.path": "/openapi/device/dev/logout",
+  "upload.path": "/openapi/device/dev/post/data",
+  "mqtt.host": "iot.gkiiot.com",
+  "mqtt.port": 1883,
+  "mqtt.username": "admin",
+  "mqtt.password": "fd2018",
+  "mqtt.topic": "/sys/down/dev/+/+/"
 }
