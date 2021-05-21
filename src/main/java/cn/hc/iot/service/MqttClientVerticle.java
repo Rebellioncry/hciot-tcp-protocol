@@ -1,7 +1,9 @@
 package cn.hc.iot.service;
 
 import cn.hc.iot.util.ConcurrentHashMapUtil;
+import cn.hc.iot.util.TlvBox;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
@@ -33,7 +35,9 @@ public class MqttClientVerticle extends AbstractVerticle {
                     ConcurrentHashMap<NetSocket, String> all = ConcurrentHashMapUtil.all();
                     all.forEach((k,v)->{
                         if (v.contains(prodKey+":"+deviceKey)){
-                            k.write(msg.payload());
+                            TlvBox tlvBox = TlvBox.create();
+                            tlvBox.put(0x70,msg.payload().getBytes());
+                            k.write(Buffer.buffer(tlvBox.serialize()));
                         }
                     });
                 }).subscribe(config().getString("mqtt.topic"), 0,r->{
