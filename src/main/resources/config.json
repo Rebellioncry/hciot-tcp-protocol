@@ -1,6 +1,6 @@
 {
   "tcp.port": 9985,
-  "iotos.url": "http://iotos.gkiiot.com",
+  "iotos.url": "http://iot.gkiiot.com:8080",
   "login.path": "/openapi/device/dev/login",
   "logout.path": "/openapi/device/dev/logout",
   "upload.path": "/openapi/device/dev/post/data",

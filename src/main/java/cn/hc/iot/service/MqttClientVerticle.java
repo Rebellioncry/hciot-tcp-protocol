@@ -8,6 +8,7 @@ import io.vertx.core.net.NetSocket;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -22,7 +23,7 @@ public class MqttClientVerticle extends AbstractVerticle {
         MqttClientOptions mqttClientOptions = new MqttClientOptions();
         mqttClientOptions.setUsername(config().getString("mqtt.username"));
         mqttClientOptions.setPassword(config().getString("mqtt.password"));
-        mqttClientOptions.setClientId("kkkkkkkkkkkkkkkkkkkkkk");
+        mqttClientOptions.setClientId(UUID.randomUUID().toString());
 
         MqttClient client = MqttClient.create(vertx,mqttClientOptions);
         client.connect(config().getInteger("mqtt.port"), config().getString("mqtt.host"), s -> {
@@ -32,12 +33,16 @@ public class MqttClientVerticle extends AbstractVerticle {
                     String[] split = topic.split("/");
                     String prodKey = split[4];
                     String deviceKey = split[5];
-                    ConcurrentHashMap<NetSocket, String> all = ConcurrentHashMapUtil.all();
+                    ConcurrentHashMap<String,NetSocket > all = ConcurrentHashMapUtil.all();
                     all.forEach((k,v)->{
-                        if (v.contains(prodKey+":"+deviceKey)){
+                        if (k.contains(prodKey+":"+deviceKey)){
                             TlvBox tlvBox = TlvBox.create();
                             tlvBox.put(0x70,msg.payload().getBytes());
-                            k.write(Buffer.buffer(tlvBox.serialize()));
+                            v.write(Buffer.buffer(tlvBox.serialize())).onSuccess(r->{
+                                System.out.println("下发成功");
+                            }).onFailure(r->{
+                                System.out.println("下发失败");
+                            });
                         }
                     });
                 }).subscribe(config().getString("mqtt.topic"), 0,r->{
